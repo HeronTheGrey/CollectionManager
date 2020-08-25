@@ -1,12 +1,12 @@
-﻿using System;
+﻿using CollectionManager.Domain.Common;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CollectionManager
+namespace CollectionManager.Domain.Entity
 {
-    class MenuAction
+    public class MenuAction : BaseEntity
     {
-        public int Id { get; set; }
         public string Name { get; set; }
         public string Menu { get; set; }
 

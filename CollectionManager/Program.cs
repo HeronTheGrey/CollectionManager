@@ -1,4 +1,9 @@
-﻿using System;
+﻿using CollectionManager.App.Abstract;
+using CollectionManager.App.Concrete;
+using CollectionManager.App.Managers;
+using CollectionManager.Domain.Entity;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 
 namespace CollectionManager
@@ -8,39 +13,44 @@ namespace CollectionManager
         static void Main(string[] args)
         {
             Console.WriteLine("Welcome to Collection Manager.");
-            MenuActionService menuActions = new MenuActionService();
+            MenuActionService actionService = new MenuActionService();
             CollectionService collectionService = new CollectionService();
-            Initialize(menuActions);
+            List<ItemService> itemServices = new List<ItemService>();
+            CollectionManager.App.Managers.CollectionManager collectionManager = new CollectionManager.App.Managers.CollectionManager(actionService, collectionService, itemServices);
+            
+
             bool endLoop = false;
             while (!endLoop)
             {
-                var mainMenuChoice = menuActions.MainMenuDisplay();
-                endLoop = menuActions.MainMenuChoice(mainMenuChoice.KeyChar, collectionService);
+                var mainMenu = actionService.GetMenuActionsByName("MainMenu");
+                for (int i = 0; i < mainMenu.Count; i++)
+                {
+                    Console.WriteLine($"{mainMenu[i].Id}. {mainMenu[i].Name}");
+                }
+
+                var mainMenuChoice = Console.ReadKey();
+
+                Console.Clear();
+
+                switch (mainMenuChoice.KeyChar)
+                {
+                    case '1':
+                        collectionManager.CollectionMenuDisplay();
+                        break;
+                    case '2':
+                        Console.WriteLine("Not implemented yet.");
+                        break;
+                    case '3':
+                        Console.WriteLine("Not implemented yet.");
+                        break;
+                    case '4':
+                        endLoop = true;
+                        break;
+                    default:
+                        Console.WriteLine("Wrong action picked.");
+                        break;
+                }
             }
-
-
-
-
-
-        }
-
-        private static void Initialize(MenuActionService menuActions)
-        {
-            menuActions.AddMenuAction(1, "Display collections", "MainMenu");
-            menuActions.AddMenuAction(2, "Options", "MainMenu");
-            menuActions.AddMenuAction(3, "Create backup", "MainMenu");
-            menuActions.AddMenuAction(4, "Exit", "MainMenu");
-
-            menuActions.AddMenuAction(1, "Display collection", "CollectionMenu");
-            menuActions.AddMenuAction(2, "Add new collection", "CollectionMenu");
-            menuActions.AddMenuAction(3, "Modify collection", "CollectionMenu");
-            menuActions.AddMenuAction(4, "Delete collection", "CollectionMenu");
-            menuActions.AddMenuAction(5, "Back to main menu", "CollectionMenu");
-
-            menuActions.AddMenuAction(1, "Add new item", "ItemMenu");
-            menuActions.AddMenuAction(2, "Modify item", "ItemMenu");
-            menuActions.AddMenuAction(3, "Delete item", "ItemMenu");
-            menuActions.AddMenuAction(4, "Back to collections view", "ItemMenu");
         }
     }
 }
