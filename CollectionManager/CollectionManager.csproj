@@ -5,4 +5,14 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
+    <PackageReference Include="Moq" Version="4.14.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CollectionManager.App\CollectionManager.App.csproj" />
+    <ProjectReference Include="..\CollectionManager.Domain\CollectionManager.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
