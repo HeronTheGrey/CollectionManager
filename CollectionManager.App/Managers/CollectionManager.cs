@@ -78,6 +78,9 @@ namespace CollectionManager.App.Managers
                         DeleteCollection();
                         break;
                     case '5':
+                        CollectionDetailsView();
+                        break;
+                    case '6':
                         endLoop = true;
                         break;
                     default:
@@ -85,6 +88,30 @@ namespace CollectionManager.App.Managers
                         break;
                 }
             }
+        }
+
+        public void CollectionDetailsView()
+        {
+            Console.WriteLine("Enter id of collection to display");
+            int id;
+            int.TryParse(Console.ReadLine(), out id);
+            Console.Clear();
+            foreach (var collection in _collectionService.Items)
+            {
+                if (collection.Id == id)
+                {
+                    Console.WriteLine($"Full name: {collection.Name}");
+                    Console.WriteLine($"Full description: {collection.Description}");
+                    Console.WriteLine($"Created: {collection.CreatedDateTime}");
+                    Console.WriteLine($"Last modified: {collection.ModifiedDateTime}\n");
+
+                    Console.WriteLine("Press any key to return to menu.");
+                    Console.ReadKey();
+                    Console.Clear();
+                    return;
+                }
+            }
+            Console.WriteLine("There is no such id");
         }
 
         public ItemService SelectionOfCollection()
@@ -151,6 +178,8 @@ namespace CollectionManager.App.Managers
             Collection collection = new Collection(id, newName, newDescription);
 
             Console.Clear();
+            collection.ModifiedDateTime = DateTime.Now;
+
             var colMod = _collectionService.UpdateItem(collection);
             if (colMod == null)
             {
@@ -172,6 +201,8 @@ namespace CollectionManager.App.Managers
 
             Collection collection = new Collection(id+1, name, description);
 
+            collection.CreatedDateTime = DateTime.Now;
+            collection.ModifiedDateTime = DateTime.Now;
             _collectionService.AddItem(collection);
             _itemServices.Add(new ItemService(collection.Id));
 
