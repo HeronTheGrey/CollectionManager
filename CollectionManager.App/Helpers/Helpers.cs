@@ -27,7 +27,7 @@ namespace CollectionManager.App.Helpers
                 Console.Write(" ");
             }
             Console.Write("Name");
-            for (int i = 0 ; i < maxName + 1 ; i++)
+            for (int i = 0 ; i < (maxName + 1) && i < 26 ; i++)
             {
                 Console.Write(" ");
             }
@@ -40,22 +40,41 @@ namespace CollectionManager.App.Helpers
 
             foreach (var item in itemService.Items)
             {
+                
                 Console.Write($"{item.Id}.");
                 for (int i = item.Id.ToString().Length; i < maxId + 4; i++)
                 {
                     Console.Write(" ");
                 }
-                Console.Write($"{item.Name}");
-                for (int i = item.Name.Length; i < maxName + 5; i++)
+                for(int i = 0; i < item.Name.Length && i < 26 ; i++)
                 {
-                    Console.Write(" ");
+                    Console.Write(item.Name[i]);
+                }
+                if (item.Name.Length > 26)
+                {
+                    Console.Write("... ");
+                }
+                else
+                {
+                    for (int i = item.Name.Length; i < maxName + 5 && i < 30 ; i++)
+                    {
+                        Console.Write(" ");
+                    }
                 }
                 Console.Write($"{item.Quantity}");
                 for (int i = item.Quantity.ToString().Length; i < maxQuantity + 9; i++)
                 {
                     Console.Write(" ");
                 }
-                Console.Write($"{item.Description}\n");
+                for (int i = 0; i < item.Description.Length && i < 65; i++)
+                {
+                    Console.Write(item.Description[i]);
+                }
+                if(item.Description.Length > 65)
+                {
+                    Console.Write("...");
+                }
+                Console.Write("\n");
             }
         }
     }
