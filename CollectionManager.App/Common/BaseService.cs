@@ -50,6 +50,8 @@ namespace CollectionManager.App.Common
             var index = Items.FindIndex(p => p.Id == item.Id);
             if (index != -1)
             {
+                item.CreatedDateTime = Items[index].CreatedDateTime;
+                item.CreatedById = Items[index].CreatedById;
                 Items[index] = item;
                 return Items[index].Id;
             }

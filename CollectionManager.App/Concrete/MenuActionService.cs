@@ -38,12 +38,14 @@ namespace CollectionManager.App.Concrete
             AddItem(new MenuAction(2, "Add new collection", "CollectionMenu"));
             AddItem(new MenuAction(3, "Modify collection", "CollectionMenu"));
             AddItem(new MenuAction(4, "Delete collection", "CollectionMenu"));
-            AddItem(new MenuAction(5, "Back to main menu", "CollectionMenu"));
+            AddItem(new MenuAction(5, "View collection detail", "CollectionMenu"));
+            AddItem(new MenuAction(6, "Back to main menu", "CollectionMenu"));
 
             AddItem(new MenuAction(1, "Add new item", "ItemMenu"));
             AddItem(new MenuAction(2, "Modify item", "ItemMenu"));
             AddItem(new MenuAction(3, "Delete item", "ItemMenu"));
-            AddItem(new MenuAction(4, "Back to collections view", "ItemMenu"));
+            AddItem(new MenuAction(4, "View item detail", "ItemMenu"));
+            AddItem(new MenuAction(5, "Back to collections view", "ItemMenu"));
         }
     }
 }

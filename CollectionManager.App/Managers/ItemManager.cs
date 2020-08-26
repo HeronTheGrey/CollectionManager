@@ -62,6 +62,9 @@ namespace CollectionManager.App.Managers
                         DeleteItem();
                         break;
                     case '4':
+                        ItemDetailsView();
+                        break;
+                    case '5':
                         endLoop = true;
                         break;
                     default:
@@ -69,6 +72,30 @@ namespace CollectionManager.App.Managers
                         break;
                 }
             }
+        }
+
+        public void ItemDetailsView()
+        {
+            Console.WriteLine("Enter id of item to display");
+            int id;
+            int.TryParse(Console.ReadLine(), out id);
+            Console.Clear();
+            foreach (var item in _itemService.Items)
+            {
+                if (item.Id == id)
+                {
+                    Console.WriteLine($"Full name: {item.Name}");
+                    Console.WriteLine($"Full description: {item.Description}");
+                    Console.WriteLine($"Created: {item.CreatedDateTime}");
+                    Console.WriteLine($"Last modified: {item.ModifiedDateTime}\n");
+
+                    Console.WriteLine("Press any key to return to menu.");
+                    Console.ReadKey();
+                    Console.Clear();
+                    return;
+                }
+            }
+            Console.WriteLine("There is no such id");
         }
 
         public void DeleteItem()
@@ -107,6 +134,8 @@ namespace CollectionManager.App.Managers
             int id = _itemService.GetLastId();
 
             Item item = new Item(id+1, quantity, name, description);
+            item.CreatedDateTime = DateTime.Now;
+            item.ModifiedDateTime = DateTime.Now;
 
             _itemService.AddItem(item);
             
@@ -130,6 +159,7 @@ namespace CollectionManager.App.Managers
             int.TryParse(Console.ReadLine(), out newQuantity);
 
             Item item = new Item(id, newQuantity, newName, newDescription);
+            item.ModifiedDateTime = DateTime.Now;
 
             Console.Clear();
             var itemMod = _itemService.UpdateItem(item);
