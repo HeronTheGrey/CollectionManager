@@ -31,8 +31,7 @@ namespace CollectionManager.App.Concrete
         {
             AddItem(new MenuAction(1, "Display collections", "MainMenu"));
             AddItem(new MenuAction(2, "Options", "MainMenu"));
-            AddItem(new MenuAction(3, "Create backup", "MainMenu"));
-            AddItem(new MenuAction(4, "Exit", "MainMenu"));
+            AddItem(new MenuAction(3, "Exit", "MainMenu"));
 
             AddItem(new MenuAction(1, "Display collection", "CollectionMenu"));
             AddItem(new MenuAction(2, "Add new collection", "CollectionMenu"));
@@ -46,6 +45,11 @@ namespace CollectionManager.App.Concrete
             AddItem(new MenuAction(3, "Delete item", "ItemMenu"));
             AddItem(new MenuAction(4, "View item detail", "ItemMenu"));
             AddItem(new MenuAction(5, "Back to collections view", "ItemMenu"));
+
+            AddItem(new MenuAction(1, "Erase all data", "OptionMenu"));
+            AddItem(new MenuAction(2, "Create backup", "OptionMenu"));
+            AddItem(new MenuAction(3, "Load backup", "OptionMenu"));
+            AddItem(new MenuAction(4, "Back to main menu", "OptionMenu"));
         }
     }
 }

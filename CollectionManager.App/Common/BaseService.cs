@@ -16,6 +16,20 @@ namespace CollectionManager.App.Common
             Items = new List<T>();
         }
 
+        public T GetItemById(int id)
+        {
+            T result = null;
+            foreach (var item in Items)
+            {
+                if(item.Id == id)
+                {
+                    result = item;
+                    break;
+                }
+            }
+            return result;
+        }
+
         public int GetLastId()
         {
             int lastId;

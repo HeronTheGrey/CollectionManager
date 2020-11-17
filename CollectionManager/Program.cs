@@ -5,6 +5,7 @@ using CollectionManager.Domain.Entity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Xml.Serialization;
 
 namespace CollectionManager
 {
@@ -14,11 +15,14 @@ namespace CollectionManager
         {
             Console.WriteLine("Welcome to Collection Manager.");
             MenuActionService actionService = new MenuActionService();
-            CollectionService collectionService = new CollectionService();
-            List<ItemService> itemServices = new List<ItemService>();
-            CollectionManager.App.Managers.CollectionManager collectionManager = new CollectionManager.App.Managers.CollectionManager(actionService, collectionService, itemServices);
-            
+            IService<Collection>  collectionService = new CollectionService();
+            IService<Item> itemService = new ItemService();
+            CollectionManager.App.Managers.CollectionManager collectionManager = new CollectionManager.App.Managers.CollectionManager(actionService, collectionService, itemService);
+            DataManager dataManager = new DataManager(collectionService, itemService);
+            OptionManager optionManager = new OptionManager(actionService, dataManager);
 
+            dataManager.ReadAllData();
+            
             bool endLoop = false;
             while (!endLoop)
             {
@@ -38,13 +42,11 @@ namespace CollectionManager
                         collectionManager.CollectionMenuDisplay();
                         break;
                     case '2':
-                        Console.WriteLine("Not implemented yet.");
+                        optionManager.OptionMenuDisplay();
                         break;
                     case '3':
-                        Console.WriteLine("Not implemented yet.");
-                        break;
-                    case '4':
                         endLoop = true;
+                        dataManager.SaveAllData();
                         break;
                     default:
                         Console.WriteLine("Wrong action picked.");

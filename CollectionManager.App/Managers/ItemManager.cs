@@ -5,18 +5,22 @@ using System.Data;
 using System.Runtime.CompilerServices;
 using System.Text;
 using CollectionManager.App.Helpers;
+using CollectionManager.App.Abstract;
+using System.Linq;
 
 namespace CollectionManager.App.Managers
 {
-    class ItemManager
+    public class ItemManager
     {
         private readonly MenuActionService _actionService;
-        ItemService _itemService;
+        IService<Item> _itemService;
+        int _collectionId;
 
-        public ItemManager(MenuActionService actionService, ItemService itemService)
+        public ItemManager(MenuActionService actionService, IService<Item> itemService, int collectionId)
         {
             _actionService = actionService;
             _itemService = itemService;
+            _collectionId = collectionId;
         }
 
         public void DisplayAllItems()
@@ -27,8 +31,17 @@ namespace CollectionManager.App.Managers
             }
             else
             {
-                Helpers.Helpers.ItemTableDisplay(_itemService);
+                var items = GetListOfItemsByCollectionId(_collectionId);
+                Helpers.Helpers.ItemTableDisplay(items);
             }
+        }
+
+        public List<Item> GetListOfItemsByCollectionId(int collectionId)
+        {
+            var items = (from i in _itemService.Items
+                         where i.CollectionId == collectionId
+                         select i).ToList();
+            return items;
         }
 
         public void ItemMenuDisplay()
@@ -59,7 +72,7 @@ namespace CollectionManager.App.Managers
                         ModifyItem();
                         break;
                     case '3':
-                        DeleteItem();
+                        DeleteItemView();
                         break;
                     case '4':
                         ItemDetailsView();
@@ -80,25 +93,40 @@ namespace CollectionManager.App.Managers
             int id;
             int.TryParse(Console.ReadLine(), out id);
             Console.Clear();
-            foreach (var item in _itemService.Items)
+            var item = GetItemById(id);
+            if (item != null)
             {
-                if (item.Id == id)
-                {
-                    Console.WriteLine($"Full name: {item.Name}");
-                    Console.WriteLine($"Full description: {item.Description}");
-                    Console.WriteLine($"Created: {item.CreatedDateTime}");
-                    Console.WriteLine($"Last modified: {item.ModifiedDateTime}\n");
+                Console.WriteLine($"Full name: {item.Name}");
+                Console.WriteLine($"Full description: {item.Description}");
+                Console.WriteLine($"Created: {item.CreatedDateTime}");
+                Console.WriteLine($"Last modified: {item.ModifiedDateTime}\n");
 
-                    Console.WriteLine("Press any key to return to menu.");
-                    Console.ReadKey();
-                    Console.Clear();
-                    return;
-                }
+                Console.WriteLine("Press any key to return to menu.");
+                Console.ReadKey();
+                Console.Clear();
+             
             }
-            Console.WriteLine("There is no such id");
+            else
+            {
+                Console.WriteLine("There is no such id");
+            }
         }
 
-        public void DeleteItem()
+        public Item GetItemById(int id)
+        {
+            Item result = null;
+            foreach (var item in _itemService.Items)
+            {
+                if(item.Id == id)
+                {
+                    result = item;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        public void DeleteItemView()
         {
             Console.WriteLine("Enter id of item to remove.");
             int id;
@@ -110,11 +138,28 @@ namespace CollectionManager.App.Managers
             {
                 if (tem.Id == id)
                 {
+                    if (tem.CollectionId != _collectionId)
+                    {
+                        Console.WriteLine("Are you sure you want to delete item from different collection? (y/n)");
+                        char read = 'A';
+                        do
+                        {
+                            read = Console.ReadKey().KeyChar;
+                        } while (read != 'Y' && read != 'y' && read != 'N' && read != 'n');
+                        Console.Clear();
+                        if( read == 'n' || read == 'N') { return; }
+                    }
                     _itemService.RemoveItem(tem);
                     return;
                 }
             }
             Console.WriteLine("There is no such id.");
+        }
+
+        public void DeleteItem(int id)
+        {
+            var itemToDelete = GetItemById(id);
+            _itemService.RemoveItem(itemToDelete);
         }
 
         public int AddNewItem()
@@ -133,7 +178,7 @@ namespace CollectionManager.App.Managers
 
             int id = _itemService.GetLastId();
 
-            Item item = new Item(id+1, quantity, name, description);
+            Item item = new Item(id+1, quantity, name, description, _collectionId);
             item.CreatedDateTime = DateTime.Now;
             item.ModifiedDateTime = DateTime.Now;
 
@@ -148,25 +193,72 @@ namespace CollectionManager.App.Managers
             int id;
             int.TryParse(Console.ReadLine(), out id);
 
-            Console.WriteLine("Enter new name for item");
-            string newName = Console.ReadLine();
+            bool idIsCorrect = false;
 
-            Console.WriteLine("Enter new description for item");
-            string newDescription = Console.ReadLine();
+            int tempCollectionId = _collectionId;
 
-            Console.WriteLine("Enter new quantity for item");
-            int newQuantity;
-            int.TryParse(Console.ReadLine(), out newQuantity);
-
-            Item item = new Item(id, newQuantity, newName, newDescription);
-            item.ModifiedDateTime = DateTime.Now;
-
-            Console.Clear();
-            var itemMod = _itemService.UpdateItem(item);
-            if (itemMod == null)
+            foreach (var tem in _itemService.Items)
             {
+                if (tem.Id == id)
+                {
+                    if (tem.CollectionId != _collectionId)
+                    {
+                        tempCollectionId = tem.CollectionId;
+                        Console.WriteLine("Are you sure you want to modify item from different collection? (y/n)");
+                        char read = 'A';
+                        do
+                        {
+                            read = Console.ReadKey().KeyChar;
+                        } while (read != 'Y' && read != 'y' && read != 'N' && read != 'n');
+                        Console.Clear();
+                        if (read == 'n' || read == 'N') { return; }
+                    }
+
+                    idIsCorrect = true;
+                }
+            }
+
+            if (idIsCorrect)
+            {
+                Console.WriteLine("Enter new name for item (if you don't want to change certain attribute just push enter)");
+                string newName = Console.ReadLine();
+                if(newName.Length == 0)
+                {
+                    newName = _itemService.GetItemById(id).Name;
+                }
+
+                Console.WriteLine("Enter new description for item");
+                string newDescription = Console.ReadLine();
+                if (newDescription.Length == 0)
+                {
+                    newDescription = _itemService.GetItemById(id).Description;
+                }
+
+                Console.WriteLine("Enter new quantity for item");
+                int newQuantity;
+                string tempString = Console.ReadLine();
+                if (tempString.Length == 0)
+                {
+                    newQuantity = _itemService.GetItemById(id).Quantity;
+                }
+                else
+                {
+                    int.TryParse(tempString, out newQuantity);
+                }
+
+                Item item = new Item(id, newQuantity, newName, newDescription, tempCollectionId);
+                item.ModifiedDateTime = DateTime.Now;
+
+                Console.Clear();
+
+                var itemMod = _itemService.UpdateItem(item);
+            }
+            else
+            {
+                Console.Clear();
                 Console.WriteLine("Wrong id");
             }
+
         }
     }
 }

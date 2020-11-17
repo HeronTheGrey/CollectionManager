@@ -7,13 +7,13 @@ namespace CollectionManager.App.Helpers
 {
     public static class Helpers
     {
-        public static void ItemTableDisplay(ItemService itemService)
+        public static void ItemTableDisplay(List<Item> items)
         {
             int maxId = 0;
             int maxName = 0;
             int maxQuantity = 0;
 
-            foreach (var item in itemService.Items)
+            foreach (var item in items)
             {
                 if (maxId < item.Id.ToString().Length) { maxId = item.Id.ToString().Length; }
                 if (maxName < item.Name.Length) { maxName = item.Name.Length; }
@@ -38,7 +38,7 @@ namespace CollectionManager.App.Helpers
             }
             Console.WriteLine("Description");
 
-            foreach (var item in itemService.Items)
+            foreach (var item in items)
             {
                 
                 Console.Write($"{item.Id}.");
