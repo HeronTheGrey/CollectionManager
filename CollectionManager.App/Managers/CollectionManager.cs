@@ -4,6 +4,7 @@ using CollectionManager.Domain.Entity;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace CollectionManager.App.Managers
 {
@@ -11,12 +12,12 @@ namespace CollectionManager.App.Managers
     {
         private readonly MenuActionService _actionService;
         private IService<Collection> _collectionService;
-        private List<ItemService> _itemServices;
-        public CollectionManager(MenuActionService actionService, IService<Collection> collectionService, List<ItemService> itemService)
+        private IService<Item> _itemService;
+        public CollectionManager(MenuActionService actionService, IService<Collection> collectionService, IService<Item> itemService)
         {
             _collectionService = collectionService;
             _actionService = actionService;
-            _itemServices = itemService;
+            _itemService = itemService;
         }
 
         public void DisplayAllCollections()
@@ -57,10 +58,11 @@ namespace CollectionManager.App.Managers
                 switch (collectionMenuChoice.KeyChar)
                 {
                     case '1':
-                        ItemService itemService = SelectionOfCollection();
-                        if(itemService != null)
+                        int collectionId = SelectionOfCollection();
+
+                        if(IsThereCollectionWithChosenId(collectionId))
                         {
-                            ItemManager itemManager = new ItemManager(_actionService, itemService);
+                            ItemManager itemManager = new ItemManager(_actionService, _itemService, collectionId);
                             itemManager.ItemMenuDisplay();
                         }
                         else
@@ -75,7 +77,7 @@ namespace CollectionManager.App.Managers
                         ModifyCollection();
                         break;
                     case '4':
-                        DeleteCollection();
+                        DeleteCollectionView();
                         break;
                     case '5':
                         CollectionDetailsView();
@@ -90,52 +92,62 @@ namespace CollectionManager.App.Managers
             }
         }
 
+        public bool IsThereCollectionWithChosenId(int collectionId)
+        {
+            int items = (from i in _collectionService.Items
+                         where i.Id == collectionId
+                         select i).Count();
+                
+            if (items > 0 )
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public void CollectionDetailsView()
         {
             Console.WriteLine("Enter id of collection to display");
             int id;
             int.TryParse(Console.ReadLine(), out id);
             Console.Clear();
-            foreach (var collection in _collectionService.Items)
+            var collection = GetCollectionById(id);
+            if (collection != null)
             {
-                if (collection.Id == id)
-                {
-                    Console.WriteLine($"Full name: {collection.Name}");
-                    Console.WriteLine($"Full description: {collection.Description}");
-                    Console.WriteLine($"Created: {collection.CreatedDateTime}");
-                    Console.WriteLine($"Last modified: {collection.ModifiedDateTime}\n");
-
-                    Console.WriteLine("Press any key to return to menu.");
-                    Console.ReadKey();
-                    Console.Clear();
-                    return;
-                }
+                Console.WriteLine($"Full name: {collection.Name}");
+                Console.WriteLine($"Full description: {collection.Description}");
+                Console.WriteLine($"Created: {collection.CreatedDateTime}");
+                Console.WriteLine($"Last modified: {collection.ModifiedDateTime}\n");
+                Console.WriteLine("Press any key to return to menu.");
+                Console.ReadKey();
+                Console.Clear();
             }
-            Console.WriteLine("There is no such id");
+            else
+            {
+                Console.WriteLine("There is no such id");
+            } 
         }
 
-        public ItemService SelectionOfCollection()
+        public Collection GetCollectionById(int id)
+        {
+            return _collectionService.GetItemById(id);
+        }
+
+        public int SelectionOfCollection()
         {
             Console.WriteLine("Enter id of collection to display");
             int id;
             int.TryParse(Console.ReadLine(), out id);
 
-            ItemService itemService = null;
-
             Console.Clear();
 
-            foreach (var temItem in _itemServices)
-            {
-                if (temItem.CollectionId == id)
-                {
-                    itemService = temItem;
-                    break;
-                }
-            }
-            return itemService;
+            return id;
         }
 
-        public void DeleteCollection()
+        public void DeleteCollectionView()
         {
             Console.WriteLine("Enter id of collection to remove.");
             int id;
@@ -143,24 +155,27 @@ namespace CollectionManager.App.Managers
 
             Console.Clear();
 
-            foreach (var tem in _collectionService.Items)
+            DeleteCollectionAndItsItems(id);
+        }
+
+        public void DeleteCollectionAndItsItems(int id)
+        {
+            var collection = GetCollectionById(id);
+            if (collection != null)
             {
-                if (tem.Id == id)
+                _collectionService.RemoveItem(collection);
+                foreach(var item in _itemService.Items)
                 {
-                    _collectionService.RemoveItem(tem);
-                   
-                    foreach (var temItem in _itemServices)
+                    if(item.CollectionId == id)
                     {
-                        if (temItem.CollectionId == id)
-                        {
-                            _itemServices.Remove(temItem);
-                            return;
-                        }
+                        _itemService.RemoveItem(item);
                     }
-                    return;
                 }
             }
-            Console.WriteLine("There is no such id.");
+            else
+            {
+                Console.WriteLine("There is no such id.");
+            }
         }
 
         public void ModifyCollection()
@@ -169,20 +184,40 @@ namespace CollectionManager.App.Managers
             int id;
             int.TryParse(Console.ReadLine(), out id);
 
-            Console.WriteLine("Enter new name for collection");
-            string newName = Console.ReadLine();
+            bool idIsCorrect = false;
 
-            Console.WriteLine("Enter new description for collection");
-            string newDescription = Console.ReadLine();
-
-            Collection collection = new Collection(id, newName, newDescription);
-
-            Console.Clear();
-            collection.ModifiedDateTime = DateTime.Now;
-
-            var colMod = _collectionService.UpdateItem(collection);
-            if (colMod == null)
+            foreach (var tem in _collectionService.Items)
             {
+                if (tem.Id == id)
+                {
+                    idIsCorrect = true;
+                }
+            }
+            if (idIsCorrect)
+            {
+                Console.WriteLine("Enter new name for collection (if you don't want to change certain attribute just push enter)");
+                string newName = Console.ReadLine();
+                if (newName.Length == 0)
+                {
+                    newName = _collectionService.GetItemById(id).Name;
+                }
+
+                Console.WriteLine("Enter new description for collection");
+                string newDescription = Console.ReadLine();
+                if (newDescription.Length == 0)
+                {
+                    newDescription = _collectionService.GetItemById(id).Description;
+                }
+
+                Collection collection = new Collection(id, newName, newDescription);
+
+                Console.Clear();
+                collection.ModifiedDateTime = DateTime.Now;
+                var colMod = _collectionService.UpdateItem(collection);
+            }
+            else
+            {
+                Console.Clear();
                 Console.WriteLine("Wrong id");
             }
         }
@@ -204,7 +239,6 @@ namespace CollectionManager.App.Managers
             collection.CreatedDateTime = DateTime.Now;
             collection.ModifiedDateTime = DateTime.Now;
             _collectionService.AddItem(collection);
-            _itemServices.Add(new ItemService(collection.Id));
 
             return collection.Id;
         }
