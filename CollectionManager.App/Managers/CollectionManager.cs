@@ -164,7 +164,7 @@ namespace CollectionManager.App.Managers
             if (collection != null)
             {
                 _collectionService.RemoveItem(collection);
-                foreach(var item in _itemService.Items)
+                foreach(var item in _itemService.Items.ToList())
                 {
                     if(item.CollectionId == id)
                     {
